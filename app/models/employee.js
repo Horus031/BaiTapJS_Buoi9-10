@@ -19,6 +19,10 @@ class Employee {
     this.workingHours = workingHours;
     this.totalSalary = 0;
     this.rank = "";
+
+    this.getEmployeeRole(role);
+    this.calculateSalaryByRole();
+    this.calculateRank();
   }
 
   calculateRank() {

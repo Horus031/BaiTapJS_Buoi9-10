@@ -9,77 +9,32 @@ export function getEle(id, object = document) {
   return object.getElementById(id);
 }
 
-function getValue() {
-  const username = getEle("tknv").value;
-  const fullname = getEle("name").value;
-  const email = getEle("email").value;
-  const password = getEle("password").value;
-  const beginDate = getEle("datepicker").value;
-  const salary = getEle("luongCB").value;
-  const role = getEle("chucvu").value;
-  const workingHours = getEle("gioLam").value;
+function getEmployeeFromForm(formType, currentEmployee = null) {
+  const prefix = formType === "edit" ? "edit-" : "";
+  const errorSuffix = formType === "edit" ? "Edit" : "";
+
+  const username = getEle(`${prefix}tknv`).value;
+  const fullname = getEle(`${prefix}name`).value;
+  const email = getEle(`${prefix}email`).value;
+  const password = getEle(`${prefix}password`).value;
+  const beginDate = getEle(`${prefix}datepicker`).value;
+  const salary = getEle(`${prefix}luongCB`).value;
+  const role = getEle(`${prefix}chucvu`).value;
+  const workingHours = getEle(`${prefix}gioLam`).value;
+
+  const errorIds = {
+    username: `tbTKNV${errorSuffix}`,
+    fullname: `tbTen${errorSuffix}`,
+    email: `tbEmail${errorSuffix}`,
+    password: `tbMatKhau${errorSuffix}`,
+    beginDate: `tbNgay${errorSuffix}`,
+    salary: `tbLuongCB${errorSuffix}`,
+    role: `tbChucVu${errorSuffix}`,
+    workingHours: `tbGiolam${errorSuffix}`,
+  };
 
   let isValid = true;
 
-  isValid = getValidationConditions(
-    isValid,
-    getEle("tknv").value,
-    getEle("name").value,
-    getEle("email").value,
-    getEle("password").value,
-    getEle("datepicker").value,
-    getEle("luongCB").value,
-    getEle("chucvu").value,
-    getEle("gioLam").value,
-    {
-      username: "tbTKNV",
-      fullname: "tbTen",
-      email: "tbEmail",
-      password: "tbMatKhau",
-      beginDate: "tbNgay",
-      salary: "tbLuongCB",
-      role: "tbChucVu",
-      workingHours: "tbGiolam",
-    }
-  );
-
-  if (!isValid) return;
-
-  const employee = new Employee(
-    username,
-    fullname,
-    email,
-    password,
-    beginDate,
-    salary,
-    role,
-    workingHours
-  );
-
-  employee.getEmployeeRole(role);
-
-  employee.calculateSalaryByRole();
-
-  employee.calculateRank();
-
-  return employee;
-}
-
-function getValidationConditions(
-  isValid,
-  username,
-  fullname,
-  email,
-  password,
-  beginDate,
-  salary,
-  role,
-  workingHours,
-  errorIds, // Tạo object để lưu trữ các span ID
-  currentUsername = null,
-  currentFullname = null,
-  currentEmail = null
-) {
   isValid &=
     validation.checkEmpty(
       username,
@@ -104,11 +59,15 @@ function getValidationConditions(
       "(*) Tài khoản này đã có người sử dụng",
       employeeList.employees,
       "username",
-      currentUsername
+      currentEmployee?.username
     );
 
   isValid &=
-    validation.checkEmpty(fullname, "tbTen", "(*) Tên không được để trống") &&
+    validation.checkEmpty(
+      fullname,
+      errorIds.fullname,
+      "(*) Tên không được để trống"
+    ) &&
     validation.checkString(
       fullname,
       errorIds.fullname,
@@ -120,11 +79,15 @@ function getValidationConditions(
       "(*) Tên này đã có người sử dụng",
       employeeList.employees,
       "fullname",
-      currentFullname
+      currentEmployee?.fullname
     );
 
   isValid &=
-    validation.checkEmpty(email, "tbEmail", "(*) Email không được để trống") &&
+    validation.checkEmpty(
+      email,
+      errorIds.email,
+      "(*) Email không được để trống"
+    ) &&
     validation.checkEmail(
       email,
       errorIds.email,
@@ -136,7 +99,7 @@ function getValidationConditions(
       "(*) Email này đã có người sử dụng",
       employeeList.employees,
       "email",
-      currentEmail
+      currentEmployee?.email
     );
 
   isValid &=
@@ -164,21 +127,17 @@ function getValidationConditions(
       errorIds.salary,
       "(*) Lương không được để trống"
     ) &&
-    validation.checkNumber(
-      salary,
-      errorIds.salary,
-      "(*) Lương không hợp lệ (hãy bỏ các ký tự nếu có)"
-    ) &&
+    validation.checkNumber(salary, errorIds.salary, "(*) Lương không hợp lệ") &&
     validation.checkSalaryRange(
       salary,
       errorIds.salary,
-      "(*) Lương cơ bản phải từ 1 000 000 - 20 000 000"
+      "(*) Lương phải từ 1.000.000 - 20.000.000"
     );
 
   isValid &= validation.checkValidRole(
     role,
     errorIds.role,
-    "(*) Xin hãy chọn chức vụ hợp lệ"
+    "(*) Hãy chọn chức vụ hợp lệ"
   );
 
   isValid &=
@@ -190,15 +149,28 @@ function getValidationConditions(
     validation.checkNumber(
       workingHours,
       errorIds.workingHours,
-      "(*) Giờ làm không hợp lệ (hãy bỏ các từ)"
+      "(*) Giờ làm không hợp lệ"
     ) &&
     validation.checkWorkingHours(
       workingHours,
       errorIds.workingHours,
-      "Giờ làm chỉ được nằm trong khoảng 80 - 200 giờ"
+      "(*) Giờ làm từ 80 đến 200"
     );
 
-  return isValid;
+  if (!isValid) return null;
+
+  const employee = new Employee(
+    username,
+    fullname,
+    email,
+    password,
+    beginDate,
+    Number(salary),
+    role,
+    Number(workingHours)
+  );
+
+  return employee;
 }
 
 function renderEmployeeList(employeeList) {
@@ -267,50 +239,14 @@ function handleEditModal(id) {
     workingHours.value = currentUserInfo.workingHours;
 
     getEle("btnCapNhat").onclick = function () {
-      let isValid = true;
+      const updatedEmployee = getEmployeeFromForm("edit", currentUserInfo);
 
-      isValid = getValidationConditions(
-        isValid,
-        getEle("edit-tknv").value,
-        getEle("edit-name").value,
-        getEle("edit-email").value,
-        getEle("edit-password").value,
-        getEle("edit-datepicker").value,
-        getEle("edit-luongCB").value,
-        getEle("edit-chucvu").value,
-        getEle("edit-gioLam").value,
-        {
-          username: "tbTKNVEdit",
-          fullname: "tbTenEdit",
-          email: "tbEmailEdit",
-          password: "tbMatKhauEdit",
-          beginDate: "tbNgayEdit",
-          salary: "tbLuongCBEdit",
-          role: "tbChucVuEdit",
-          workingHours: "tbGiolamEdit",
-        },
-        currentUserInfo.username,
-        currentUserInfo.fullname,
-        currentUserInfo.email
-      );
-
-      if (!isValid) return;
-
-      // Truyền các thông tin mới cho hàm editEmployee
-      employeeList.editEmployee(
-        index,
-        username.value,
-        fullname.value,
-        email.value,
-        password.value,
-        beginDate.value,
-        salary.value,
-        role.value,
-        workingHours.value
-      );
-      renderEmployeeList(employeeList.employees);
-      setLocalStorage(employeeList.employees);
-      getEle("btnDongEdit").click();
+      if (updatedEmployee) {
+        employeeList.editEmployee(index, updatedEmployee);
+        renderEmployeeList(employeeList.employees);
+        setLocalStorage(employeeList.employees);
+        getEle("btnDongEdit").click();
+      }
     };
   }
 }
@@ -349,7 +285,7 @@ function getLocalStorage(key) {
 getLocalStorage("employeeList");
 
 getEle("btnThemNV").onclick = function () {
-  const employee = getValue();
+  const employee = getEmployeeFromForm("add");
 
   if (employee) {
     employeeList.addEmployee(employee);

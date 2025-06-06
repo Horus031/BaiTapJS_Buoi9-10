@@ -45,40 +45,8 @@ class EmployeeList {
     }
   }
 
-  editEmployee(
-    id,
-    username,
-    fullname,
-    email,
-    password,
-    beginDate,
-    salary,
-    role,
-    workingHours
-  ) {
-    if (id !== -1) {
-      // Tạo một Object Employee mới với tất cả thông tin mới
-      const editedInfo = new Employee(
-        username,
-        fullname,
-        email,
-        password,
-        beginDate,
-        salary,
-        role,
-        workingHours
-      );
-
-      // Tính toán lại các giá trị
-      editedInfo.getEmployeeRole(role);
-
-      editedInfo.calculateSalaryByRole();
-
-      editedInfo.calculateRank();
-
-      // Gán object mới vào object hiện tại để thay thế nó
-      this.employees[id] = editedInfo;
-    }
+  editEmployee(index, updatedEmployee) {
+    this.employees[index] = updatedEmployee;
   }
 }
 
